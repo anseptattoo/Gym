@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Entrenamiento — Andrés</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #111110;
+    --bg2: #1a1918;
+    --bg3: #232220;
+    --border: #2e2c2a;
+    --text: #e8e4df;
+    --muted: #7a7570;
+    --dim: #3d3a37;
+    --accent: #c9763a;
+    --accent2: #8fb89a;
+    --accent3: #7ba3c4;
+    --accent4: #b07cc0;
+    --danger: #c95a4a;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  nav button {
+    flex: 1; border: none; background: none;
+    color: var(--muted); font-size: 11px; font-family: inherit;
+    padding: 10px 4px 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; transition: color 0.15s;
+  }
+  nav button.active { color: var(--accent); }
+  nav button svg { width: 20px; height: 20px; }
+
+  /* PAGES */
+  .page { display: none; padding: 0; }
+  .page.active { display: block; }
+
+  /* HEADER */
+  .page-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .page-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+  .page-header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 12px 16px 0;
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .card-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .card-title { font-size: 15px; font-weight: 500; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .card-chevron { margin-left: auto; color: var(--muted); font-size: 18px; transition: transform 0.2s; flex-shrink: 0; }
+  .card-chevron.open { transform: rotate(180deg); }
+  .card-body { display: none; border-top: 1px solid var(--border); }
+  .card-body.open { display: block; }
+
+  /* EXERCISES */
+  .ex-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ex-item:last-child { border-bottom: none; }
+  .ex-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .ex-name { font-size: 14px; font-weight: 500; }
+  .ex-sets { font-size: 12px; color: var(--accent); font-family: 'DM Mono', monospace; margin-top: 3px; }
+  .ex-why { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+  .check-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: none; color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+    font-size: 14px;
+  }
+  .check-btn.done { background: var(--accent2); border-color: var(--accent2); color: #111; }
+
+  /* INPUT ROW */
+  .ex-log { display: flex; gap: 6px; margin-top: 8px; }
+  .ex-log input {
+    flex: 1; background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px; padding: 7px 10px;
+    -webkit-appearance: none;
+  }
+  .ex-log input::placeholder { color: var(--dim); }
+  .ex-log input:focus { outline: none; border-color: var(--accent); }
+
+  /* TIMER */
+  .timer-wrap {
+    background: var(--bg3);
+    border-radius: var(--radius);
+    margin: 12px 16px 0;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .timer-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 52px; font-weight: 500;
+    letter-spacing: 2px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .timer-display.running { color: var(--accent2); }
+  .timer-display.resting { color: var(--accent3); }
+  .timer-mode { font-size: 12px; color: var(--muted); margin-top: 6px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .timer-btns { display: flex; gap: 10px; margin-top: 16px; }
+  .timer-btns button {
+    flex: 1; padding: 12px;
+    border-radius: 9px; border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-start { background: var(--accent2); color: #111; }
+  .btn-rest { background: var(--accent3); color: #111; }
+  .btn-reset { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+  .rest-presets { display: flex; gap: 6px; margin-top: 10px; }
+  .rest-presets button {
+    flex: 1; padding: 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 7px; color: var(--muted);
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    cursor: pointer;
+  }
+  .rest-presets button.active { border-color: var(--accent3); color: var(--accent3); }
+
+  /* WEEKLY LOG */
+  .week-header { padding: 16px 16px 8px; }
+  .week-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .week-days { display: flex; gap: 6px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
+  .week-days::-webkit-scrollbar { display: none; }
+  .day-pill {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; min-width: 42px;
+  }
+  .day-name { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+  .day-dot {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; cursor: pointer;
+    transition: all 0.15s; color: var(--muted);
+  }
+  .day-dot.today { border-color: var(--accent); }
+  .day-dot.gym { background: var(--accent); color: #111; border-color: var(--accent); font-size: 14px; }
+  .day-dot.boulder { background: #5a4a2a; color: #e8c87a; border-color: #7a6a3a; font-size: 14px; }
+  .day-dot.yoga { background: #3a2a4a; color: #c090e8; border-color: #6a4a8a; font-size: 14px; }
+  .day-dot.rest { background: var(--bg3); color: var(--dim); border-color: var(--border); font-size: 14px; }
+  .day-date { font-size: 10px; color: var(--dim); font-family: 'DM Mono', monospace; }
+
+  /* LOG MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 430px;
+    padding: 8px 16px 32px;
+    border-top: 1px solid var(--border);
+  }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 10px auto 16px; }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+  .log-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .log-opt {
+    padding: 14px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--bg3);
+    text-align: center; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .log-opt:hover { border-color: var(--accent); }
+  .log-opt.selected { border-color: var(--accent); background: rgba(201,118,58,0.1); }
+  .log-opt-icon { font-size: 24px; margin-bottom: 6px; }
+  .log-opt-name { font-size: 13px; font-weight: 500; }
+  .log-opt-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-actions button {
+    flex: 1; padding: 13px;
+    border-radius: 10px; border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .btn-cancel { background: var(--bg3); color: var(--muted); }
+  .btn-save { background: var(--accent); color: #111; }
+
+  /* STATS */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 16px 0; }
+  .stat-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px;
+  }
+  .stat-num { font-size: 28px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* REGLA */
+  .rule-box {
+    margin: 12px 16px 0;
+    background: rgba(201,118,58,0.08);
+    border: 1px solid rgba(201,118,58,0.25);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .rule-box strong { color: var(--accent); font-size: 13px; }
+  .rule-box p { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.6; }
+
+  /* ROUTINE SELECTOR */
+  .routine-tabs { display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; }
+  .routine-tabs::-webkit-scrollbar { display: none; }
+  .rtab {
+    padding: 7px 14px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg2); color: var(--muted);
+    font-size: 13px; font-weight: 500; white-space: nowrap;
+    cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .rtab.active { background: var(--accent); color: #111; border-color: var(--accent); }
+
+  .routine-panel { display: none; }
+  .routine-panel.active { display: block; }
+
+  /* NOTES */
+  .note-inline {
+    margin: 8px 16px 0;
+    font-size: 12px; color: var(--muted); line-height: 1.6;
+    padding: 10px 14px;
+    background: var(--bg3); border-radius: var(--radius-sm);
+    border-left: 3px solid var(--accent2);
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap { padding: 8px 16px 0; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; }
+  .progress-fill { height: 100%; background: var(--accent2); border-radius: 2px; transition: width 0.3s; }
+
+  /* SESSION COMPLETE */
+  .complete-banner {
+    display: none; margin: 12px 16px 0;
+    background: rgba(143,184,154,0.1);
+    border: 1px solid rgba(143,184,154,0.3);
+    border-radius: var(--radius); padding: 14px 16px;
+    text-align: center;
+  }
+  .complete-banner.show { display: block; }
+  .complete-banner .big { font-size: 32px; }
+  .complete-banner p { font-size: 13px; color: var(--accent2); margin-top: 6px; }
+
+  /* CASA PAGE */
+  .casa-item {
+    display: flex; align-items: flex-start;
+    gap: 12px; padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .casa-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--muted); flex-shrink: 0; margin-top: 1px;
+  }
+  .casa-info { flex: 1; }
+  .casa-name { font-size: 14px; font-weight: 500; }
+  .casa-sets { font-size: 12px; color: var(--accent); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .casa-note { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+  .spacer { height: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ===== SEMANA ===== -->
+<div class="page active" id="page-semana">
+  <div class="page-header">
+    <h1>Esta semana</h1>
+    <p id="week-range">Cargando...</p>
+  </div>
+
+  <div class="week-header">
+    <div class="week-label">Registro</div>
+  </div>
+  <div class="week-days" id="week-days"></div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-gym">0</div>
+      <div class="stat-label">Gym esta semana</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-boulder">0</div>
+      <div class="stat-label">Boulder esta semana</div>
+    </div>
+  </div>
+
+  <div class="rule-box">
+    <strong>La única regla</strong>
+    <p>Entre Boulder y Gym B (jale) siempre un día libre mínimo, en cualquier dirección.</p>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-header" onclick="toggleCard('regla')">
+      <div class="card-icon" style="background:#2a2018">📋</div>
+      <div>
+        <div class="card-title">Distribución flexible</div>
+        <div class="card-sub">Cómo ordenar la semana</div>
+      </div>
+      <div class="card-chevron" id="chevron-regla">›</div>
+    </div>
+    <div class="card-body" id="body-regla">
+      <div style="padding:14px 16px; font-size:13px; color:var(--muted); line-height:1.8">
+        <strong style="color:var(--text)">Gym A, C y D</strong> → pueden ir cualquier día, incluso consecutivos entre sí.<br>
+        <strong style="color:var(--text)">Gym B (jale)</strong> → necesita 1 día libre antes o después del boulder.<br>
+        <strong style="color:var(--text)">Boulder</strong> → mejor llegar sin haber hecho jale el día anterior.<br>
+        <strong style="color:var(--text)">Yoga</strong> → cualquier día, no interfiere con nada.<br><br>
+        <strong style="color:var(--accent)">Gym D (comodín):</strong><br>
+        · Core específico: L-sit, hollow body, toes to bar<br>
+        · Hombros: Face pull, rotaciones externas, press Arnold<br>
+        · Repetir el bloque que hayas hecho menos esa semana
+      </div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ===== GYM ===== -->
+<div class="page" id="page-gym">
+  <div class="page-header">
+    <h1>Gym</h1>
+    <p>Elige tu bloque de hoy</p>
+  </div>
+
+  <div class="routine-tabs">
+    <button class="rtab active" onclick="switchRoutine('a')">A — Empuje</button>
+    <button class="rtab" onclick="switchRoutine('b')">B — Jale</button>
+    <button class="rtab" onclick="switchRoutine('c')">C — Piernas</button>
+    <button class="rtab" onclick="switchRoutine('d')">D — Comodín</button>
+  </div>
+
+  <!-- ROUTINE A -->
+  <div class="routine-panel active" id="routine-a">
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progreso</span><span id="prog-a">0 / 7</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="fill-a" style="width:0%"></div></div>
+    </div>
+    <div class="note-inline">Pecho · Hombro · Tríceps · Core — ~65 min</div>
+    <div class="complete-banner" id="complete-a"><div class="big">🔥</div><p>¡Gym A completado!</p></div>
+
+    <div class="card">
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Press banca con barra</div><div class="ex-sets">4 × 8–10 · 2 min descanso</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'a')">○</button>
+        </div>
+        <div class="ex-why">Fuerza de empuje base, estabiliza hombros en movimientos con brazos extendidos</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Press militar mancuernas (sentado)</div><div class="ex-sets">3 × 10–12 · 90 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'a')">○</button>
+        </div>
+        <div class="ex-why">Hombros fuertes = mejor control en movimientos por encima de la cabeza</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Fondos en paralelas</div><div class="ex-sets">3 × hasta fallo · 90 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'a')">○</button>
+        </div>
+        <div class="ex-why">Pecho inferior y tríceps — transfiere a empujes en roca</div>
+        <div class="ex-log"><input type="text" placeholder="reps" inputmode="numeric"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Elevaciones laterales</div><div class="ex-sets">3 × 15 · 60 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'a')">○</button>
+        </div>
+        <div class="ex-why">Protege el manguito rotador — zona de lesión frecuente en escaladores</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Cable crunch (polea alta, de rodillas)</div><div class="ex-sets">3 × 15–20 · 60 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'a')">○</button>
+        </div>
+        <div class="ex-why">Carga el recto abdominal con peso real — imposible hacer esto en el suelo</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Pallof press (polea media, de pie)</div><div class="ex-sets">3 × 12 por lado · 60 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'a')">○</button>
+        </div>
+        <div class="ex-why">Antirotación — mantiene el cuerpo pegado a la pared cuando estiras un brazo</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Dead bug</div><div class="ex-sets">3 × 10 lentas por lado</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'a')">○</button>
+        </div>
+        <div class="ex-why">Coordinación core + protección lumbar — ataca la causa del dolor de espalda</div>
+        <div class="ex-log"><input type="text" placeholder="notas" style="flex:2"></div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ROUTINE B -->
+  <div class="routine-panel" id="routine-b">
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progreso</span><span id="prog-b">0 / 6</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="fill-b" style="width:0%"></div></div>
+    </div>
+    <div class="note-inline">Espalda · Bíceps · Antebrazo · Manguito — ~70 min</div>
+    <div class="note-inline" style="border-left-color:var(--danger);margin-top:6px">⚠ Respetar 1 día libre antes/después del boulder</div>
+    <div class="complete-banner" id="complete-b"><div class="big">🔥</div><p>¡Gym B completado!</p></div>
+
+    <div class="card">
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Dominadas asistidas (o jalón al pecho)</div><div class="ex-sets">4 × 6–8 · 2 min</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'b')">○</button>
+        </div>
+        <div class="ex-why">El movimiento más transferible al boulder — jalar el cuerpo desde los lats</div>
+        <div class="ex-log"><input type="text" placeholder="kg asistencia" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Remo con barra (o en máquina)</div><div class="ex-sets">4 × 10 · 90 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'b')">○</button>
+        </div>
+        <div class="ex-why">Espalda media fuerte = previene el dolor lumbar</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Curl de bíceps (supino + neutro)</div><div class="ex-sets">3 × 12 · 60 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'b')">○</button>
+        </div>
+        <div class="ex-why">Variar agarre reduce estrés en codo</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Rotación externa con banda/polea baja</div><div class="ex-sets">3 × 15 por lado · 60 seg — peso liviano</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'b')">○</button>
+        </div>
+        <div class="ex-why">Manguito rotador — imprescindible para escaladores</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Extensión de muñeca con mancuerna</div><div class="ex-sets">3 × 20 · 45 seg — máx 4 kg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'b')">○</button>
+        </div>
+        <div class="ex-why">Previene el codo de escalador — el ejercicio más importante si te duelen los codos</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Dead hang (suspensión pasiva en barra)</div><div class="ex-sets">3 × 20–30 seg · 60 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'b')">○</button>
+        </div>
+        <div class="ex-why">Acondiciona tendones de dedos + descomprime lumbar</div>
+        <div class="ex-log"><input type="text" placeholder="seg" inputmode="numeric"><input type="text" placeholder="notas"></div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ROUTINE C -->
+  <div class="routine-panel" id="routine-c">
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progreso</span><span id="prog-c">0 / 6</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="fill-c" style="width:0%"></div></div>
+    </div>
+    <div class="note-inline">Cuádriceps · Glúteos · Isquios · Tobillo — ~65 min</div>
+    <div class="complete-banner" id="complete-c"><div class="big">🔥</div><p>¡Gym C completado!</p></div>
+
+    <div class="card">
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Sentadilla goblet (mancuerna al pecho)</div><div class="ex-sets">4 × 10–12 · 90 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'c')">○</button>
+        </div>
+        <div class="ex-why">Trabaja tobillo y movilidad de cadera — necesaria en boulder</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Zancada búlgara</div><div class="ex-sets">3 × 10 por pierna · 90 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'c')">○</button>
+        </div>
+        <div class="ex-why">Fuerza unilateral = equilibrio en paredes con apoyos desequilibrados</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Peso muerto rumano con mancuernas</div><div class="ex-sets">3 × 12 · 90 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'c')">○</button>
+        </div>
+        <div class="ex-why">Isquiotibiales y cadena posterior — previene dolor lumbar</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Hip thrust</div><div class="ex-sets">3 × 15 · 60 seg</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'c')">○</button>
+        </div>
+        <div class="ex-why">Glúteos fuertes = menos carga lumbar al empujar con pies en la pared</div>
+        <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Ab wheel rollout</div><div class="ex-sets">3 × 8–10 · 90 seg · desde rodillas</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'c')">○</button>
+        </div>
+        <div class="ex-why">Core antiextensión — transfiere a tensión corporal en problemas de techo</div>
+        <div class="ex-log"><input type="text" placeholder="reps" inputmode="numeric"><input type="text" placeholder="notas"></div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-top">
+          <div><div class="ex-name">Equilibrio en un pie (ojos cerrados)</div><div class="ex-sets">3 × 30 seg por lado</div></div>
+          <button class="check-btn" onclick="toggleEx(this,'c')">○</button>
+        </div>
+        <div class="ex-why">Propiocepción de tobillo — muy transferible a apoyos pequeños en boulder</div>
+        <div class="ex-log"><input type="text" placeholder="notas" style="flex:2"></div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ROUTINE D -->
+  <div class="routine-panel" id="routine-d">
+    <div class="note-inline">Comodín — elige según cómo llegaste esta semana</div>
+    <div class="card" style="margin-top:10px">
+      <div class="card-header" onclick="toggleCard('d1')">
+        <div class="card-icon" style="background:#1a2a1a">🧲</div>
+        <div>
+          <div class="card-title">Core boulder</div>
+          <div class="card-sub">Si el core fue tu punto débil</div>
+        </div>
+        <div class="card-chevron" id="chevron-d1">›</div>
+      </div>
+      <div class="card-body" id="body-d1">
+        <div class="ex-item">
+          <div class="ex-top">
+            <div><div class="ex-name">Toes to bar</div><div class="ex-sets">3 × 6–10 · 90 seg</div></div>
+            <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+          </div>
+          <div class="ex-why">Si no llegas, knees to chest. Combina fuerza de agarre + core + flexores de cadera</div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-top">
+            <div><div class="ex-name">Hollow body hold</div><div class="ex-sets">3 × 20–30 seg · 60 seg</div></div>
+            <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+          </div>
+          <div class="ex-why">Acostado, espalda pegada al suelo, piernas y hombros a ~15 cm. El ejercicio de body tension por excelencia</div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-top">
+            <div><div class="ex-name">Pallof press</div><div class="ex-sets">3 × 12 por lado · 60 seg</div></div>
+            <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+          </div>
+          <div class="ex-why">De pie lateral a la polea, extiende los brazos resistiendo la rotación</div>
+          <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px">
+      <div class="card-header" onclick="toggleCard('d2')">
+        <div class="card-icon" style="background:#1a1a2a">💪</div>
+        <div>
+          <div class="card-title">Hombros y manguito</div>
+          <div class="card-sub">Si notaste inestabilidad en hombros</div>
+        </div>
+        <div class="card-chevron" id="chevron-d2">›</div>
+      </div>
+      <div class="card-body" id="body-d2">
+        <div class="ex-item">
+          <div class="ex-top">
+            <div><div class="ex-name">Face pull (polea alta, cuerda)</div><div class="ex-sets">4 × 15 · 60 seg</div></div>
+            <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+          </div>
+          <div class="ex-why">Jala la cuerda hacia la cara abriendo los codos. Manguito posterior, fundamental para escaladores</div>
+          <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-top">
+            <div><div class="ex-name">Elevaciones frontales con mancuerna</div><div class="ex-sets">3 × 12 · 60 seg</div></div>
+            <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+          </div>
+          <div class="ex-why">Hombro anterior — activo en movimientos de mantling y empuje en techo</div>
+          <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-top">
+            <div><div class="ex-name">Press Arnold</div><div class="ex-sets">3 × 10 · 90 seg</div></div>
+            <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+          </div>
+          <div class="ex-why">Mancuernas al pecho con palmas hacia ti, gira y presiona arriba. Trabaja todos los deltoides</div>
+          <div class="ex-log"><input type="text" placeholder="kg" inputmode="decimal"><input type="text" placeholder="notas"></div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ===== TIMER ===== -->
+<div class="page" id="page-timer">
+  <div class="page-header">
+    <h1>Cronómetro</h1>
+    <p>Entreno y descanso entre series</p>
+  </div>
+
+  <div class="timer-wrap">
+    <div class="timer-display" id="timer-display">00:00</div>
+    <div class="timer-mode" id="timer-mode">LISTO</div>
+    <div class="timer-btns">
+      <button class="timer-btns" style="display:contents">
+        <button class="btn-start" id="btn-start-stop" onclick="timerStartStop()">Iniciar</button>
+        <button class="btn-reset" onclick="timerReset()">Reset</button>
+      </button>
+    </div>
+  </div>
+
+  <div class="timer-wrap" style="margin-top:10px">
+    <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Descanso</div>
+    <div class="timer-display" id="rest-display" style="font-size:40px">01:30</div>
+    <div class="rest-presets">
+      <button onclick="setRest(45)" id="rest-45">45 seg</button>
+      <button onclick="setRest(60)" id="rest-60">1 min</button>
+      <button onclick="setRest(90)" class="active" id="rest-90">1:30</button>
+      <button onclick="setRest(120)" id="rest-120">2 min</button>
+    </div>
+    <div class="timer-btns" style="margin-top:10px">
+      <button class="btn-rest" onclick="restStart()" id="btn-rest">Iniciar descanso</button>
+      <button class="btn-reset" onclick="restReset()">Reset</button>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<!-- ===== CASA ===== -->
+<div class="page" id="page-casa">
+  <div class="page-header">
+    <h1>Rutina de casa</h1>
+    <p>5–10 min al despertar</p>
+  </div>
+
+  <div class="note-inline" style="margin:12px 16px 0">Orden: Plancha → Plancha lateral → Dead bug → Hollow body → Flexiones → Sentadillas. Sin descansos largos, cabe en 7–8 min.</div>
+
+  <div class="card" style="margin-top:10px">
+    <div class="casa-item">
+      <div class="casa-num">1</div>
+      <div class="casa-info">
+        <div class="casa-name">Plancha frontal</div>
+        <div class="casa-sets">3 × 30–45 seg</div>
+        <div class="casa-note">Cuerpo recto, core apretado. Sem 3+: sube a 60 seg</div>
+      </div>
+      <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+    </div>
+    <div class="casa-item">
+      <div class="casa-num">2</div>
+      <div class="casa-info">
+        <div class="casa-name">Plancha lateral</div>
+        <div class="casa-sets">2 × 20 seg por lado</div>
+        <div class="casa-note">Cadera arriba, no dejes que caiga. Sem 3+: 35 seg</div>
+      </div>
+      <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+    </div>
+    <div class="casa-item">
+      <div class="casa-num">3</div>
+      <div class="casa-info">
+        <div class="casa-name">Dead bug</div>
+        <div class="casa-sets">2 × 8 por lado</div>
+        <div class="casa-note">Acostado, brazo y pierna opuestos se extienden lentos sin despegar la espalda del suelo. Siempre lento.</div>
+      </div>
+      <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+    </div>
+    <div class="casa-item">
+      <div class="casa-num">4</div>
+      <div class="casa-info">
+        <div class="casa-name">Hollow body hold ⭐</div>
+        <div class="casa-sets">2 × 20 seg</div>
+        <div class="casa-note">Lumbar pegada al suelo, piernas y hombros a ~15 cm. El más importante para boulder. Sem 3+: 30 seg</div>
+      </div>
+      <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+    </div>
+    <div class="casa-item">
+      <div class="casa-num">5</div>
+      <div class="casa-info">
+        <div class="casa-name">Flexiones</div>
+        <div class="casa-sets">3 × hasta fallo</div>
+        <div class="casa-note">Cuerpo recto, pecho toca el suelo. Sem 3+: añade pausa de 1 seg abajo</div>
+      </div>
+      <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+    </div>
+    <div class="casa-item">
+      <div class="casa-num">6</div>
+      <div class="casa-info">
+        <div class="casa-name">Sentadillas</div>
+        <div class="casa-sets">3 × 15</div>
+        <div class="casa-note">Rodillas hacia afuera, talones en el suelo. Sem 3+: unilateral (1 pierna)</div>
+      </div>
+      <button class="check-btn" onclick="toggleExSimple(this)">○</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:10px">
+    <div class="card-header" onclick="toggleCard('prog-casa')">
+      <div class="card-icon" style="background:#1a2a1a">📈</div>
+      <div>
+        <div class="card-title">Progresión por semanas</div>
+        <div class="card-sub">Cómo avanzar con el tiempo</div>
+      </div>
+      <div class="card-chevron" id="chevron-prog-casa">›</div>
+    </div>
+    <div class="card-body" id="body-prog-casa">
+      <div style="padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.8">
+        <strong style="color:var(--accent)">Sem 1–2:</strong> Plancha 30s · Plancha lat 20s · Dead bug 8 · Hollow 20s · Flexiones fallo · Sentadillas 15<br>
+        <strong style="color:var(--accent)">Sem 3–4:</strong> Plancha 45s · Plancha lat 30s · Dead bug 10 · Hollow 30s · Flex con pausa · Sent unilateral 8<br>
+        <strong style="color:var(--accent)">Sem 5+:</strong> Plancha 60s · Plancha lat 40s · Dead bug 12 · Hollow 40s · Flex declinadas · Sent unilateral 12
+      </div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- LOG MODAL -->
+<div class="modal-overlay" id="log-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="modal-day-label">¿Qué hiciste hoy?</h3>
+    <div class="log-options">
+      <div class="log-opt" onclick="selectLog('gym')" id="opt-gym">
+        <div class="log-opt-icon">🏋️</div>
+        <div class="log-opt-name">Gym</div>
+        <div class="log-opt-sub">A · B · C · D</div>
+      </div>
+      <div class="log-opt" onclick="selectLog('boulder')" id="opt-boulder">
+        <div class="log-opt-icon">🧗</div>
+        <div class="log-opt-name">Boulder</div>
+        <div class="log-opt-sub">Sesión de escalada</div>
+      </div>
+      <div class="log-opt" onclick="selectLog('yoga')" id="opt-yoga">
+        <div class="log-opt-icon">🧘</div>
+        <div class="log-opt-name">Yoga</div>
+        <div class="log-opt-sub">Movilidad</div>
+      </div>
+      <div class="log-opt" onclick="selectLog('rest')" id="opt-rest">
+        <div class="log-opt-icon">😴</div>
+        <div class="log-opt-name">Descanso</div>
+        <div class="log-opt-sub">Recuperación</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveLog()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <button class="active" onclick="showPage('semana',this)" id="nav-semana">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Semana
+  </button>
+  <button onclick="showPage('gym',this)" id="nav-gym">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M3 8h4M17 8h4M3 16h4M17 16h4"/></svg>
+    Gym
+  </button>
+  <button onclick="showPage('timer',this)" id="nav-timer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 3h6"/></svg>
+    Timer
+  </button>
+  <button onclick="showPage('casa',this)" id="nav-casa">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+    Casa
+  </button>
+</nav>
+
+<script>
+// ===== NAVIGATION =====
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== CARDS =====
+function toggleCard(id) {
+  const body = document.getElementById('body-' + id);
+  const chev = document.getElementById('chevron-' + id);
+  body.classList.toggle('open');
+  if (chev) chev.style.transform = body.classList.contains('open') ? 'rotate(90deg)' : '';
+}
+
+// ===== ROUTINE TABS =====
+function switchRoutine(id) {
+  document.querySelectorAll('.routine-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('routine-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== EXERCISE CHECK =====
+const routineTotals = { a: 7, b: 6, c: 6 };
+const routineDone = { a: 0, b: 0, c: 0 };
+
+function toggleEx(btn, routine) {
+  const done = btn.classList.toggle('done');
+  btn.textContent = done ? '✓' : '○';
+  if (done) routineDone[routine]++;
+  else routineDone[routine]--;
+  const total = routineTotals[routine];
+  const count = Math.max(0, routineDone[routine]);
+  document.getElementById('prog-' + routine).textContent = count + ' / ' + total;
+  document.getElementById('fill-' + routine).style.width = (count / total * 100) + '%';
+  if (count >= total) {
+    document.getElementById('complete-' + routine).classList.add('show');
+  } else {
+    document.getElementById('complete-' + routine).classList.remove('show');
+  }
+}
+
+function toggleExSimple(btn) {
+  const done = btn.classList.toggle('done');
+  btn.textContent = done ? '✓' : '○';
+}
+
+// ===== TIMER =====
+let timerInterval = null;
+let timerSeconds = 0;
+let timerRunning = false;
+
+function timerStartStop() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('btn-start-stop').textContent = 'Continuar';
+    document.getElementById('timer-display').className = 'timer-display';
+    document.getElementById('timer-mode').textContent = 'PAUSADO';
+  } else {
+    timerRunning = true;
+    document.getElementById('btn-start-stop').textContent = 'Pausar';
+    document.getElementById('timer-display').className = 'timer-display running';
+    document.getElementById('timer-mode').textContent = 'ENTRENANDO';
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      document.getElementById('timer-display').textContent = formatTime(timerSeconds);
+    }, 1000);
+  }
+}
+
+function timerReset() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = 0;
+  document.getElementById('timer-display').textContent = '00:00';
+  document.getElementById('timer-display').className = 'timer-display';
+  document.getElementById('timer-mode').textContent = 'LISTO';
+  document.getElementById('btn-start-stop').textContent = 'Iniciar';
+}
+
+let restInterval = null;
+let restSeconds = 90;
+let restRunning = false;
+let restTarget = 90;
+
+function setRest(secs) {
+  restTarget = secs;
+  document.querySelectorAll('.rest-presets button').forEach(b => b.classList.remove('active'));
+  document.getElementById('rest-' + secs).classList.add('active');
+  if (!restRunning) {
+    restSeconds = secs;
+    document.getElementById('rest-display').textContent = formatTime(restSeconds);
+  }
+}
+
+function restStart() {
+  if (restRunning) {
+    clearInterval(restInterval);
+    restRunning = false;
+    document.getElementById('btn-rest').textContent = 'Iniciar descanso';
+    document.getElementById('rest-display').className = 'timer-display';
+    return;
+  }
+  restSeconds = restTarget;
+  document.getElementById('rest-display').textContent = formatTime(restSeconds);
+  restRunning = true;
+  document.getElementById('btn-rest').textContent = 'Detener';
+  document.getElementById('rest-display').className = 'timer-display resting';
+  restInterval = setInterval(() => {
+    restSeconds--;
+    document.getElementById('rest-display').textContent = formatTime(restSeconds);
+    if (restSeconds <= 0) {
+      clearInterval(restInterval);
+      restRunning = false;
+      document.getElementById('btn-rest').textContent = 'Iniciar descanso';
+      document.getElementById('rest-display').className = 'timer-display';
+      document.getElementById('rest-display').textContent = '¡Ya!';
+      try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA...').play(); } catch(e) {}
+      navigator.vibrate && navigator.vibrate([200, 100, 200]);
+      setTimeout(() => {
+        document.getElementById('rest-display').textContent = formatTime(restTarget);
+      }, 2000);
+    }
+  }, 1000);
+}
+
+function restReset() {
+  clearInterval(restInterval);
+  restRunning = false;
+  restSeconds = restTarget;
+  document.getElementById('rest-display').textContent = formatTime(restTarget);
+  document.getElementById('rest-display').className = 'timer-display';
+  document.getElementById('btn-rest').textContent = 'Iniciar descanso';
+}
+
+function formatTime(s) {
+  const m = Math.floor(Math.abs(s) / 60);
+  const sec = Math.abs(s) % 60;
+  return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+}
+
+// ===== WEEKLY LOG =====
+const DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let weekLog = {};
+let selectedDay = null;
+let selectedLog = null;
+
+function getWeekDates() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function dateKey(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function renderWeek() {
+  const dates = getWeekDates();
+  const today = dateKey(new Date());
+  const container = document.getElementById('week-days');
+  container.innerHTML = '';
+
+  const first = dates[0];
+  const last = dates[6];
+  const fmt = d => d.getDate() + '/' + (d.getMonth()+1);
+  document.getElementById('week-range').textContent = fmt(first) + ' – ' + fmt(last);
+
+  let gymCount = 0, boulderCount = 0;
+
+  dates.forEach((d, i) => {
+    const key = dateKey(d);
+    const log = weekLog[key];
+    const isToday = key === today;
+
+    const pill = document.createElement('div');
+    pill.className = 'day-pill';
+
+    const name = document.createElement('div');
+    name.className = 'day-name';
+    name.textContent = DAYS[(i + 1) % 7];
+
+    const dot = document.createElement('div');
+    dot.className = 'day-dot' + (isToday ? ' today' : '');
+    if (log === 'gym') { dot.classList.add('gym'); dot.textContent = '🏋️'; gymCount++; }
+    else if (log === 'boulder') { dot.classList.add('boulder'); dot.textContent = '🧗'; boulderCount++; }
+    else if (log === 'yoga') { dot.classList.add('yoga'); dot.textContent = '🧘'; }
+    else if (log === 'rest') { dot.classList.add('rest'); dot.textContent = '😴'; }
+    else dot.textContent = isToday ? '·' : '';
+
+    dot.onclick = () => openModal(key, d);
+
+    const dateEl = document.createElement('div');
+    dateEl.className = 'day-date';
+    dateEl.textContent = d.getDate() + '/' + (d.getMonth()+1);
+
+    pill.append(name, dot, dateEl);
+    container.appendChild(pill);
+  });
+
+  document.getElementById('stat-gym').textContent = gymCount;
+  document.getElementById('stat-boulder').textContent = boulderCount;
+}
+
+function openModal(key, date) {
+  selectedDay = key;
+  selectedLog = weekLog[key] || null;
+  const d = new Date(date);
+  document.getElementById('modal-day-label').textContent = DAYS[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+  document.querySelectorAll('.log-opt').forEach(o => o.classList.remove('selected'));
+  if (selectedLog) {
+    const el = document.getElementById('opt-' + selectedLog);
+    if (el) el.classList.add('selected');
+  }
+  document.getElementById('log-modal').classList.add('open');
+}
+
+function selectLog(type) {
+  selectedLog = type;
+  document.querySelectorAll('.log-opt').forEach(o => o.classList.remove('selected'));
+  document.getElementById('opt-' + type).classList.add('selected');
+}
+
+function saveLog() {
+  if (selectedDay && selectedLog) {
+    weekLog[selectedDay] = selectedLog;
+    try { localStorage.setItem('weekLog', JSON.stringify(weekLog)); } catch(e) {}
+  }
+  closeModal();
+  renderWeek();
+}
+
+function closeModal() {
+  document.getElementById('log-modal').classList.remove('open');
+  selectedDay = null;
+}
+
+// ===== INIT =====
+try { const saved = localStorage.getItem('weekLog'); if (saved) weekLog = JSON.parse(saved); } catch(e) {}
+renderWeek();
+</script>
+</body>
+</html>
